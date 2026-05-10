@@ -38,6 +38,19 @@ MainTab:AddButton({
   end
 })
 
+MainTab:AddSection("Movement")
+MainTab:AddButton({
+  Name = "Set Speed to 500",
+  Callback = function()
+   player.Character.Humanoid.WalkSpeed = 500
+    Window:Notify({
+      Title = "Speed Updated",
+      Content = "Your speed is now set to 500!",
+      Duration = 3
+      })
+    end
+  })
+
 MainTab:AddSection("Farming")
 MainTab:AddToggle({
   Name = "Auto Farm",

@@ -181,8 +181,8 @@ ConfigTab:AddToggle({
 })
 Window:Notify({
   Title = 'Script Loaded',
-  Content = 'redz hub loaded successfully! Press "LeftControl" to Minimize',
+  Content = 'Phyoz Hub Loaded Successfully! Press "LeftControl" To Minimize',
   Image = 'rbxassetid://112146984347920',
-  Duration = 5
+  Duration = 3
 })
 Window:SelectTab(1)

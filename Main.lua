@@ -1,9 +1,9 @@
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/newredzv3/Library/refs/heads/main/Redz-V5-remake/main.luau"))()
 
 local Window = Library:MakeWindow({
-  Title = "Phyoz Hub : Ramdom Game",
-  SubTitle = "Good Games",
-  ScriptFolder = "wand-ui"
+  Title = "PhyoX Hub : Blox Fruits",
+  SubTitle = "Wand UI Demo",
+  ScriptFolder = "PhyoX Hub"
 })
 
 local Minimizer = Window:NewMinimizer({
@@ -38,53 +38,14 @@ MainTab:AddButton({
   end
 })
 
-MainTab:AddSection("Set to Speed 100")
-MainTab:AddButton({
-   Name = "Set Speed to 100",
-   Callback = function()
-        local player = game.Players.LocalPlayer
-        if player.Character and player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid.WalkSpeed = 100
-     })
-  end
- })
-
-MainTab:AddSection("Farming")
+MainTab:AddSection("Toggle")
 MainTab:AddToggle({
   Name = "Auto Farm",
   Default = false,
   Flag = "auto_farm",
   Callback = function(v)
     Window:Notify({
-      Title = "Farming",
-      Content = tostring(v),
-      Duration = 3
-    })
-  end
-})
-
-MainTab:AddSection("Farming")
-MainTab:AddToggle({
-  Name = "Auto Farm Near Mods",
-  Default = false,
-  Flag = "auto_farm",
-  Callback = function(v)
-    Window:Notify({
-      Title = "Farming",
-      Content = tostring(v),
-      Duration = 3
-    })
-  end
-})
-
-MainTab:AddSection("Farming")
-MainTab:AddToggle({
-  Name = "Auto Factory",
-  Default = false,
-  Flag = "auto_farm",
-  Callback = function(v)
-    Window:Notify({
-      Title = "Farming",
+      Title = "Toggle",
       Content = tostring(v),
       Duration = 3
     })
@@ -179,8 +140,8 @@ ConfigTab:AddToggle({
 })
 Window:Notify({
   Title = 'Script Loaded',
-  Content = 'Phyoz Hub Loaded Successfully! Press "LeftControl" To Minimize',
+  Content = 'redz hub loaded successfully! Press "LeftControl" to Minimize',
   Image = 'rbxassetid://112146984347920',
-  Duration = 3
+  Duration = 5
 })
 Window:SelectTab(1)

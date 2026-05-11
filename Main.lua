@@ -38,18 +38,16 @@ MainTab:AddButton({
   end
 })
 
-MainTab:AddSection("Movement")
+MainTab:AddSection("Set to Speed 100")
 MainTab:AddButton({
-  Name = "Set Speed to 500",
-  Callback = function()
-   player.Character.Humanoid.WalkSpeed = 500
-    Window:Notify({
-      Title = "Speed Updated",
-      Content = "Your speed is now set to 500!",
-      Duration = 3
-      })
-    end
-  })
+   Name = "Set Speed to 100",
+   Callback = function()
+        local player = game.Players.LocalPlayer
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.WalkSpeed = 100
+     })
+  end
+ })
 
 MainTab:AddSection("Farming")
 MainTab:AddToggle({

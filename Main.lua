@@ -75,15 +75,6 @@ MainTab:AddButton({
   end
 })
 
-MainTab:AddInput({
-   Name = "Walkspeed",
-   PlaceholderText = "1-500",
-   RemoveTextAfterFocusLost = true,
-   Callback = function(Text)
-  game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Text)
-    })
-  end
-})
 
 MainTab:AddSection("Toggle")
 MainTab:AddToggle({

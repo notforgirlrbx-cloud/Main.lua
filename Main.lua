@@ -51,10 +51,35 @@ MainTab:AddButton({
   end
 })
 
+MainTab:AddSection("Button")
+MainTab:AddButton({
+  Name = "Speed Boost",
+  Callback = function()
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 300
+    Window:Notify({
+      Title = "Clicked",
+      Content = "You pressed the button",
+      Duration = 3
+    })
+  end
+})
+
+MainTab:AddSection("Button")
+MainTab:AddButton({
+  Name = "Speed Bosst Disable",
+  Callback = function()
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 20
+    Window:Notify({
+      Title = "Clicked",
+      Content = "You pressed the button",
+      Duration = 3
+    })
+  end
+})
 
 MainTab:AddSection("Toggle")
 MainTab:AddToggle({
-  Name = "Jump Boost",
+  Name = "Low Gravity",
   Default = false,
   Flag = "jump_boost",
   Callback = function(v)

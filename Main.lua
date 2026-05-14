@@ -51,7 +51,6 @@ MainTab:AddButton({
   end
 })
 
-MainTab:AddSection("Button")
 MainTab:AddButton({
   Name = "Speed Boost",
   Callback = function()
@@ -64,7 +63,6 @@ MainTab:AddButton({
   end
 })
 
-MainTab:AddSection("Button")
 MainTab:AddButton({
   Name = "Speed Bosst Disable",
   Callback = function()

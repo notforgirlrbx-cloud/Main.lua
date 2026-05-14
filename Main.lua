@@ -30,7 +30,6 @@ MainTab:AddSection("Button")
 MainTab:AddButton({
   Name = "Test Button",
   Callback = function()
-    
     Window:Notify({
       Title = "Clicked",
       Content = "You pressed the button",
@@ -43,9 +42,9 @@ MainTab:AddSection("Toggle")
 MainTab:AddToggle({
   Name = "Jump Boost",
   Default = false,
-  Flag = "auto_farm",
+  Flag = "jump_boost",
   Callback = function(v)
-    game.Players.LocalPlayer.Character.Humanoid.JumpPower = 100
+    game.Players.LocalPlayer.Character.Humanoid.JumpPower = 500
     Window:Notify({
       Title = "Toggle",
       Content = tostring(v),

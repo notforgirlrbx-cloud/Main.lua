@@ -30,6 +30,7 @@ MainTab:AddSection("Button")
 MainTab:AddButton({
   Name = "Test Button",
   Callback = function()
+    game.Players.LocalPlayer.Character.Humanoid.JumpPower = 100
     Window:Notify({
       Title = "Clicked",
       Content = "You pressed the button",
@@ -60,8 +61,8 @@ MainTab:AddSlider({
   Increment = 5,
   Default = 50,
   Callback = function(value)
-    game.Players.LocalPlayer.Character.Humanoid.JumpPower = (Value)
-   end,
+    print(v)
+   end
 })
 
 MainTab:AddSection("Dropdown")

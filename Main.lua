@@ -28,8 +28,9 @@ local ConfigTab = Window:MakeTab({
 
 MainTab:AddSection("Button")
 MainTab:AddButton({
-  Name = "Test Button",
+  Name = "Jump Boost",
   Callback = function()
+    game.Players.LocalPlayer.Character.Humanoid.JumpPower = 100
     Window:Notify({
       Title = "Clicked",
       Content = "You pressed the button",
@@ -38,13 +39,25 @@ MainTab:AddButton({
   end
 })
 
+MainTab:AddButton({
+  Name = "Jump Boost Disable",
+  Callback = function()
+    game.Players.LocalPlayer.Character.Humanoid.JumpPower = 16
+    Window:Notify({
+      Title = "Clicked",
+      Content = "You pressed the button",
+      Duration = 3
+    })
+  end
+})
+
+
 MainTab:AddSection("Toggle")
 MainTab:AddToggle({
   Name = "Jump Boost",
   Default = false,
   Flag = "jump_boost",
   Callback = function(v)
-    game.Players.LocalPlayer.Character.Humanoid.JumpPower = 500
     Window:Notify({
       Title = "Toggle",
       Content = tostring(v),

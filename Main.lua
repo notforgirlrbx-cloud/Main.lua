@@ -54,14 +54,14 @@ MainTab:AddToggle({
 
 MainTab:AddSection("Slider")
 MainTab:AddSlider({
-  Name = "Speed",
+  Name = "JumpPower",
   Min = 0,
   Max = 100,
   Increment = 5,
   Default = 50,
-  Callback = function(v)
-    print(v)
-  end
+  Callback = function(value)
+    game.Players.LocalPlayer.Character.Humanoid.JumpPower = (Value)
+   end,
 })
 
 MainTab:AddSection("Dropdown")

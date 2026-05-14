@@ -42,7 +42,7 @@ MainTab:AddButton({
 MainTab:AddButton({
   Name = "Jump Boost Disable",
   Callback = function()
-    game.Players.LocalPlayer.Character.Humanoid.JumpPower = 16
+    game.Players.LocalPlayer.Character.Humanoid.JumpPower = 50
     Window:Notify({
       Title = "Clicked",
       Content = "You pressed the button",

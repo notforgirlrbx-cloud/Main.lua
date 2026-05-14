@@ -75,7 +75,7 @@ MainTab:AddButton({
   end
 })
 
-MainTab:CreateInput({
+MainTab:AddInput({
    Name = "Walkspeed",
    PlaceholderText = "1-500",
    RemoveTextAfterFocusLost = true,

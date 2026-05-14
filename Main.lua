@@ -75,40 +75,31 @@ MainTab:AddButton({
   end
 })
 
-MainTab:AddButton({
-  Name = "Infinite Jump Toggle",
-   Callback = function()
-       --Toggles the infinite jump between on or off on every script run
-_G.infinjump = not _G.infinjump
-
-if _G.infinJumpStarted == nil then
-	--Ensures this only runs once to save resources
-	_G.infinJumpStarted = true
-	
-	game.StarterGui:SetCore("SendNotification", {Title="Youtube Hub"; Text="Infinite Jump Activated!"; Duration=5;})
-
-	local plr = game:GetService('Players').LocalPlayer
-	local m = plr:GetMouse()
-	m.KeyDown:connect(function(k)
-		if _G.infinjump then
-			if k:byte() == 32 then
-			humanoid = game:GetService'Players'.LocalPlayer.Character:FindFirstChildOfClass('Humanoid')
-			humanoid:ChangeState('Jumping')
-			wait()
-			humanoid:ChangeState('Seated')
-			end
-		end
-	end)
-end
-   end
-})
-
 MainTab:AddSection("Toggle")
 MainTab:AddToggle({
-  Name = "Low Gravity",
+  Name = "Fly Away",
   Default = false,
-  Flag = "jump_boost",
-  Callback = function(v)
+  Flag = "auto_farm",
+  Callback = function()
+-- No gravity script made by Jinxx enjoy!
+
+local player = game.Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local root = char:WaitForChild("HumanoidRootPart")
+
+local bodyVel = Instance.new("BodyVelocity")
+bodyVel.Velocity = Vector3.new(0, 50, 0)
+bodyVel.MaxForce = Vector3.new(0, math.huge, 0)
+bodyVel.Parent = root
+
+local bodyGyro = Instance.new("BodyGyro")
+bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+bodyGyro.CFrame = root.CFrame
+bodyGyro.Parent = root
+
+game:GetService("RunService").Heartbeat:Connect(function()
+    bodyGyro.CFrame = root.CFrame
+end)
     Window:Notify({
       Title = "Toggle",
       Content = tostring(v),

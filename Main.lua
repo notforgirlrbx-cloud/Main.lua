@@ -2,7 +2,7 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/newre
 
 local Window = Library:MakeWindow({
   Title = "PhyoX Hub : Blox Fruits",
-  SubTitle = "Wand UI Demo",
+  SubTitle = "By NotForGirl",
   ScriptFolder = "PhyoX Hub"
 })
 
@@ -26,55 +26,6 @@ local ConfigTab = Window:MakeTab({
   Icon = "Settings"
 })
 
-MainTab:AddSection("Button")
-MainTab:AddButton({
-  Name = "Jump Boost",
-  Callback = function()
-    game.Players.LocalPlayer.Character.Humanoid.JumpPower = 100
-    Window:Notify({
-      Title = "Clicked",
-      Content = "You pressed the button",
-      Duration = 3
-    })
-  end
-})
-
-MainTab:AddButton({
-  Name = "Jump Boost Disable",
-  Callback = function()
-    game.Players.LocalPlayer.Character.Humanoid.JumpPower = 50
-    Window:Notify({
-      Title = "Clicked",
-      Content = "You pressed the button",
-      Duration = 3
-    })
-  end
-})
-
-MainTab:AddButton({
-  Name = "Speed Boost",
-  Callback = function()
-    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 300
-    Window:Notify({
-      Title = "Clicked",
-      Content = "You pressed the button",
-      Duration = 3
-    })
-  end
-})
-
-MainTab:AddButton({
-  Name = "Speed Bosst Disable",
-  Callback = function()
-    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 20
-    Window:Notify({
-      Title = "Clicked",
-      Content = "You pressed the button",
-      Duration = 3
-    })
-  end
-})
-
 MainTab:AddSection("Toggle")
 MainTab:AddToggle({
   Name = "Fly Away",
@@ -96,8 +47,10 @@ MainTab:AddSlider({
   Max = 100,
   Increment = 5,
   Default = 50,
-  Callback = function(value)
-    print(v)
+  Callback = function(v)
+  game.Players.LocalPlayer.Character.Humanoid.JumpPower = (v)
+   end,
+})
    end
 })
 

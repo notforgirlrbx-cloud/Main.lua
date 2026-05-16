@@ -40,17 +40,29 @@ MainTab:AddToggle({
   end
 })
 
+MainTab:AddToggle({
+	Name = "Infinite Jump",
+	Default = false,
+	Flag = "Toggle1",
+	Callback = function(InfiniteJumpEnabled)
+        local InfiniteJumpEnabled = true
+        game:GetService("UserInputService").JumpRequest:connect(function()
+            if InfiniteJumpEnabled then
+                game:GetService"Players".LocalPlayer.Character:FindFirstChildOfClass'Humanoid':ChangeState("Jumping")
+            end
+        end)
+	end,
+ })
+
 MainTab:AddSection("Slider")
 MainTab:AddSlider({
   Name = "JumpPower",
-  Min = 0,
-  Max = 100,
+  Min = 50,
+  Max = 500,
   Increment = 5,
   Default = 50,
   Callback = function(v)
-  game.Players.LocalPlayer.Character.Humanoid.JumpPower = (v)
-   end,
-})
+  game.Players.LocalPlayer.Character.Humanoid.JumpPower = v
    end
 })
 

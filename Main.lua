@@ -40,6 +40,29 @@ MainTab:AddToggle({
   end
 })
 
+MainTab:AddButton({
+   Name = "Infinite Jump Toggle",
+   Callback = function() 
+_G.infinjump = not _G.infinjump
+if _G.infinJumpStarted == nil then
+	_G.infinJumpStarted = true
+	game.StarterGui:SetCore("SendNotification", {Title="Youtube Hub"; Text="Infinite Jump Activated!"; Duration=5;})
+	local plr = game:GetService('Players').LocalPlayer
+	local m = plr:GetMouse()
+	m.KeyDown:connect(function(k)
+		if _G.infinjump then
+			if k:byte() == 32 then
+			humanoid = game:GetService'Players'.LocalPlayer.Character:FindFirstChildOfClass('Humanoid')
+			humanoid:ChangeState('Jumping')
+			wait()
+			humanoid:ChangeState('Seated')
+			end
+		end
+	end)
+end
+   end,
+})
+
 MainTab:AddSection("Best Feature")
 MainTab:AddSlider({
   Name = "WalkSpeed",

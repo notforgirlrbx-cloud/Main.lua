@@ -86,20 +86,6 @@ MainTab:AddSlider({
    end
 })
 
-MainTab:AddToggle({
-	Name = "Infinite Jump",
-	Default = false,
-	Flag = "Toggle1",
-	Callback = function(InfiniteJumpEnabled)
-        local InfiniteJumpEnabled = true
-        game:GetService("UserInputService").JumpRequest:connect(function()
-            if InfiniteJumpEnabled then
-                game:GetService"Players".LocalPlayer.Character:FindFirstChildOfClass'Humanoid':ChangeState("Jumping")
-            end
-        end)
-	end,
- })
-
 MainTab:AddSection("Dropdown")
 MainTab:AddDropdown({
   Name = "Select Fruit",

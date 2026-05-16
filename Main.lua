@@ -43,7 +43,7 @@ MainTab:AddToggle({
 MainTab:AddSection("Best Feature")
 MainTab:AddSlider({
   Name = "WalkSpeed",
-  Min = 50,
+  Min = 20,
   Max = 1000,
   Increment = 5,
   Default = 50,

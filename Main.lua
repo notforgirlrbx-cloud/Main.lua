@@ -46,7 +46,7 @@ MainTab:AddSlider({
   Min = 20,
   Max = 1000,
   Increment = 5,
-  Default = 50,
+  Default = 20,
   Callback = function(v)
   game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
    end

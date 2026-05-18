@@ -26,7 +26,6 @@ local ConfigTab = Window:MakeTab({
   Icon = "Settings"
 })
 
-local autoWallHopEnabled = false
 MainTab:AddToggle({
     Name = "Auto Wall Hop",
     Default = false,

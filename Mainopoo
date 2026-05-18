@@ -26,71 +26,51 @@ local ConfigTab = Window:MakeTab({
   Icon = "Settings"
 })
 
-MainTab:AddSection("Toggle")
+local autoWallHopEnabled = false
 MainTab:AddToggle({
-  Name = "Fly Away",
-  Default = false,
-  Flag = "auto_farm",
-  Callback = function(t)
-   local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
+    Name = "Auto Wall Hop",
+    Default = false,
+    Flag = "auto_farm",
+    Callback = function(v)
+        autoWallHopEnabled = v
+        
+        if autoWallHopEnabled then
+            -- Spawns a background thread so your game/UI doesn't freeze
+            task.spawn(function()
+                local Players = game:GetService("Players")
+                local LocalPlayer = Players.LocalPlayer
+                
+                while autoWallHopEnabled do
+                    task.wait(0.01) -- High refresh rate for precise wall hopping
+                    
+                    local character = LocalPlayer.Character
+                    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+                    local hrp = character and character:FindFirstChild("HumanoidRootPart")
+                    
+                    -- Only attempts to wall hop if you are jumping/falling (in the air)
+                    if humanoid and hrp and humanoid.FloorMaterial == Enum.Material.Air then
+                        
+                        -- Raycast parameters to look for walls
+                        local raycastParams = RaycastParams.new()
+                        raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+                        raycastParams.FilterDescendantsInstances = {character}
+                        
+                        -- Cast a ray slightly forward from where your character is facing
+                        local rayDirection = hrp.CFrame.LookVector * 2.5
+                        local raycastResult = workspace:Raycast(hrp.Position, rayDirection, raycastParams)
+                        
+                        if raycastResult then
+                            -- Automatically trigger a jump request when a wall is detected
+                            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                            task.wait(0.05) -- Small delay to prevent stuttering
+                        end
+                    end
+                end
+            end)
+        end
+    end
+})
 
-local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-local rootPart = character:WaitForChild("HumanoidRootPart")
-
--- Settings
-local WALL_HOP_FORCE = 45
-local PUSH_BACK_FORCE = 18
-local MAX_DETECTION_DIST = 3
-
-local isWallHopping = false
-
--- Global attribute that the UI can toggle
-player:SetAttribute("WallHopEnabled", true)
-
-local function checkWall()
-	if not rootPart then return nil, nil end
-	
-	local raycastParams = RaycastParams.new()
-	raycastParams.FilterDescendantsInstances = {character}
-	raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-	
-	local lookDirection = rootPart.CFrame.LookVector
-	local raycastResult = workspace:Raycast(rootPart.Position, lookDirection * MAX_DETECTION_DIST, raycastParams)
-	
-	if raycastResult then
-		return raycastResult.Instance, raycastResult.Normal
-	end
-	return nil, nil
-end
-
-UserInputService.JumpRequest:Connect(function()
-	-- Check if the feature is enabled via our in-game UI setting
-	if not player:GetAttribute("WallHopEnabled") then return end
-
-	if humanoid:GetState() == Enum.HumanoidStateType.Freefall and not isWallHopping then
-		local wall, wallNormal = checkWall()
-		
-		if wall then
-			isWallHopping = true
-			humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-			
-			local jumpVelocity = Vector3.new(0, WALL_HOP_FORCE, 0) + (wallNormal * PUSH_BACK_FORCE)
-			rootPart.AssemblyLinearVelocity = jumpVelocity
-			
-			task.wait(0.25) 
-			isWallHopping = false
-		end
-	end
-end)
-
-player.CharacterAdded:Connect(function(newCharacter)
-	character = newCharacter
-	humanoid = character:WaitForChild("Humanoid")
-	rootPart = character:WaitForChild("HumanoidRootPart")
-end)
     Window:Notify({
       Title = "Toggle",
       Content = tostring(v),

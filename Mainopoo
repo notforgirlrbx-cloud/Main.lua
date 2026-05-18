@@ -31,10 +31,7 @@ MainTab:AddToggle({
     Default = false,
     Flag = "auto_farm",
     Callback = function(v)
-        autoWallHopEnabled = v
-        
-        if autoWallHopEnabled then
-            local Players = game:GetService("Players")
+local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
@@ -50,7 +47,7 @@ local MAX_DETECTION_DIST = 3
 local isWallHopping = false
 
 -- Global attribute that the UI can toggle
-player:SetAttribute("WallHopEnabled", true)
+player:SetAttribute("WallHopEnabled", v)
 
 local function checkWall()
 	if not rootPart then return nil, nil end

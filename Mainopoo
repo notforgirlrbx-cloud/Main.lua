@@ -32,18 +32,64 @@ MainTab:AddToggle({
   Default = false,
   Flag = "auto_farm",
   Callback = function(t)
-   local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+   local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Settings
+local WALL_HOP_FORCE = 45
+local PUSH_BACK_FORCE = 18
+local MAX_DETECTION_DIST = 3
+
+local isWallHopping = false
+
+-- Global attribute that the UI can toggle
+player:SetAttribute("WallHopEnabled", true)
+
+local function checkWall()
+	if not rootPart then return nil, nil end
+	
+	local raycastParams = RaycastParams.new()
+	raycastParams.FilterDescendantsInstances = {character}
+	raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+	
+	local lookDirection = rootPart.CFrame.LookVector
+	local raycastResult = workspace:Raycast(rootPart.Position, lookDirection * MAX_DETECTION_DIST, raycastParams)
+	
+	if raycastResult then
+		return raycastResult.Instance, raycastResult.Normal
+	end
+	return nil, nil
+end
+
 UserInputService.JumpRequest:Connect(function()
-	local character = LocalPlayer.Character
-	if character then
-		local humanoid = character:FindFirstChildOfClass("Humanoid")
-		if humanoid and humanoid.Health > 0 then
-			-- Change state to Jumping, forcing a mid-air jump
+	-- Check if the feature is enabled via our in-game UI setting
+	if not player:GetAttribute("WallHopEnabled") then return end
+
+	if humanoid:GetState() == Enum.HumanoidStateType.Freefall and not isWallHopping then
+		local wall, wallNormal = checkWall()
+		
+		if wall then
+			isWallHopping = true
 			humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+			
+			local jumpVelocity = Vector3.new(0, WALL_HOP_FORCE, 0) + (wallNormal * PUSH_BACK_FORCE)
+			rootPart.AssemblyLinearVelocity = jumpVelocity
+			
+			task.wait(0.25) 
+			isWallHopping = false
 		end
 	end
+end)
+
+player.CharacterAdded:Connect(function(newCharacter)
+	character = newCharacter
+	humanoid = character:WaitForChild("Humanoid")
+	rootPart = character:WaitForChild("HumanoidRootPart")
 end)
     Window:Notify({
       Title = "Toggle",
@@ -51,29 +97,6 @@ end)
       Duration = 3
     })
   end
-})
-
-MainTab:AddButton({
-   Name = "Infinite Jump Toggle",
-   Callback = function() 
-_G.infinjump = not _G.infinjump
-if _G.infinJumpStarted == nil then
-	_G.infinJumpStarted = true
-	game.StarterGui:SetCore("SendNotification", {Title="Youtube Hub"; Text="Infinite Jump Activated!"; Duration=5;})
-	local plr = game:GetService('Players').LocalPlayer
-	local m = plr:GetMouse()
-	m.KeyDown:connect(function(k)
-		if _G.infinjump then
-			if k:byte() == 32 then
-			humanoid = game:GetService'Players'.LocalPlayer.Character:FindFirstChildOfClass('Humanoid')
-			humanoid:ChangeState('Jumping')
-			wait()
-			humanoid:ChangeState('Seated')
-			end
-		end
-	end)
-end
-   end,
 })
 
 MainTab:AddSection("Best Feature")

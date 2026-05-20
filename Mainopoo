@@ -26,6 +26,7 @@ local ConfigTab = Window:MakeTab({
   Icon = "Settings"
 })
 
+MainTab:AddSection("Best Feature")
 MainTab:AddToggle({
     Name = "Auto Wall Hop",
     Default = false,
@@ -92,11 +93,25 @@ player.CharacterAdded:Connect(function(newCharacter)
 end)
     Window:Notify({
       Title = "Toggle",
-      Content = tostring(v),
+      Content = Wall hop is loaded ,
       Duration = 3
     })
   end
 })
+
+MainTab:AddToggle({
+	Name = "Infinite Jump",
+	Default = false,
+	Flag = "Toggle1",
+	Callback = function(v)
+        local InfiniteJumpEnabled = v
+        game:GetService("UserInputService").JumpRequest:connect(function()
+            if InfiniteJumpEnabled then
+                game:GetService"Players".LocalPlayer.Character:FindFirstChildOfClass'Humanoid':ChangeState("Jumping")
+            end
+        end)
+	end,
+ })
 
 MainTab:AddSection("Best Feature")
 MainTab:AddSlider({

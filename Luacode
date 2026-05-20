@@ -100,115 +100,71 @@ end)
 })
 
 MainTab:AddToggle({
-  Name = "Esp Player",
-  Default = false,
-  Flag = "auto_farm",
-  Callback = function(createESP)
-   local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
+    Name = "Esp Player",
+    Default = false,
+    Flag = "player_esp", -- Changed flag to match ESP
+    Callback = function(v)
+        _G.EspEnabled = v
+        
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
 
--- Configuration
-local ESP_COLOR = Color3.fromRGB(0, 255, 128) -- Bright neon green
-local TEXT_SIZE = 14
+        -- Function to create ESP Highlight on a character
+        local function createESP(player)
+            if player == LocalPlayer then return end
+            
+            local function applyHighlight(character)
+                -- Wait for root part to ensure character is fully loaded
+                character:WaitForChild("HumanoidRootPart", 5)
+                
+                -- Check if highlight already exists
+                if character:FindFirstChild("ESPHighlight") then return end
+                
+                local highlight = Instance.new("Highlight")
+                highlight.Name = "ESPHighlight"
+                highlight.FillColor = Color3.fromRGB(255, 0, 0) -- Red fill
+                highlight.OutlineColor = Color3.fromRGB(255, 255, 255) -- White border
+                highlight.FillTransparency = 0.5
+                highlight.OutlineTransparency = 0
+                highlight.Adornee = character
+                highlight.Parent = character
+            end
 
--- Function to create 2D screen elements for a player
-local function createESP(player)
-	if player == LocalPlayer then return end
+            if player.Character then
+                applyHighlight(player.Character)
+            end
+            
+            player.CharacterAdded:Connect(applyHighlight)
+        end
 
-	-- Create a ScreenGui inside the PlayerGui so it draws on the screen
-	local screenGui = Instance.new("ScreenGui")
-	screenGui.Name = player.Name .. "_ESP"
-	screenGui.ResetOnSpawn = false
-	screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+        -- Clean up highlights when turned off
+        local function removeESP()
+            for _, player in pairs(Players:GetPlayers()) do
+                if player.Character and player.Character:FindFirstChild("ESPHighlight") then
+                    player.Character.ESPHighlight:Destroy()
+                end
+            end
+        end
 
-	-- Create the Box Outline
-	local box = Instance.new("Frame")
-	box.BackgroundTransparency = 1
-	box.BorderColor3 = ESP_COLOR
-	box.BorderSizePixel = 2
-	box.Visible = false
-	box.Parent = screenGui
-
-	-- Create the Name Tag
-	local nameTag = Instance.new("TextLabel")
-	nameTag.BackgroundTransparency = 1
-	nameTag.TextColor3 = ESP_COLOR
-	nameTag.TextSize = TEXT_SIZE
-	nameTag.Font = Enum.Font.SourceSansBold
-	nameTag.TextStrokeTransparency = 0 -- Gives it a black outline so it's readable
-	nameTag.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-	nameTag.Visible = false
-	nameTag.Parent = screenGui
-
-	-- Update loop using RenderStepped (runs every frame before rendering)
-	local connection
-	connection = RunService.RenderStepped:Connect(function()
-		-- Check if the target player and their character still exist
-		if not player or not player.Parent or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
-			if not player or not player.Parent then
-				-- If the player left the game, clean up the GUI and stop the loop
-				screenGui:Destroy()
-				connection:Disconnect()
-			else
-				-- If they are just dead/respawning, hide the UI temporarily
-				box.Visible = false
-				nameTag.Visible = false
-			end
-			return
-		end
-
-		local character = player.Character
-		local hrp = character.HumanoidRootPart
-		local humanoid = character:FindFirstChildOfClass("Humanoid")
-
-		-- Don't show ESP if the player is dead
-		if humanoid and humanoid.Health <= 0 then
-			box.Visible = false
-			nameTag.Visible = false
-			return
-		end
-
-		-- Convert 3D World Position to 2D Screen Position
-		local hrpPosition = hrp.Position
-		local screenPos, onScreen = Camera:WorldToViewportPoint(hrpPosition)
-
-		if onScreen then
-			-- Calculate dynamic box scale based on distance from the camera
-			local distance = (Camera.CFrame.Position - hrpPosition).Magnitude
-			local scaleFactor = 1 / (distance * math.tan(math.rad(Camera.FieldOfView / 2))) * 1000
-			
-			local boxWidth = math.clamp(scaleFactor * 1.5, 20, 150)
-			local boxHeight = math.clamp(scaleFactor * 2.5, 30, 250)
-
-			-- Position and size the 2D Box
-			box.Size = UDim2.new(0, boxWidth, 0, boxHeight)
-			box.Position = UDim2.new(0, screenPos.X - (boxWidth / 2), 0, screenPos.Y - (boxHeight / 2))
-			box.Visible = true
-
-			-- Position and update the Text Label
-			nameTag.Text = string.format("%s [%d Studs]", player.Name, math.floor(distance))
-			nameTag.Size = UDim2.new(0, 200, 0, 20)
-			nameTag.Position = UDim2.new(0, screenPos.X - 100, 0, screenPos.Y - (boxHeight / 2) - 25)
-			nameTag.Visible = true
-		else
-			-- Hide elements if the player is behind the camera/walls orientation
-			box.Visible = false
-			nameTag.Visible = false
-		end
-	end)
-end
-
--- Initialize for existing players
-for _, player in ipairs(Players:GetPlayers()) do
-	createESP(player)
-end
-
--- Listen for new players joining
-Players.PlayerAdded:Connect(createESP)
-  end
+        -- Main loop / toggle handling
+        if _G.EspEnabled then
+            -- Apply to current players
+            for _, player in pairs(Players:GetPlayers()) do
+                createESP(player)
+            end
+            
+            -- Listen for new players joining
+            _G.PlayerAddedConnection = Players.PlayerAdded:Connect(createESP)
+        else
+            -- Clean up everything when toggled off
+            if _G.PlayerAddedConnection then
+                _G.PlayerAddedConnection:Disconnect()
+            end
+            removeESP()
+        end
+    end
 })
+   
         
 MainTab:AddSection("Slider")
 MainTab:AddSlider({

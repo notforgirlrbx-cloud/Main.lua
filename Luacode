@@ -99,25 +99,6 @@ end)
   end
 })
 
-MainTab:AddToggle({
-  Name = "infinite jump",
-  Default = false,
-  Flag = "auto_farm",
-  Callback = function(v)
-  local InfiniteJumpEnabled = v
-game:GetService("UserInputService").JumpRequest:connect(function()
-	if InfiniteJumpEnabled then
-		game:GetService"Players".LocalPlayer.Character:FindFirstChildOfClass'Humanoid':ChangeState("Jumping")
-	end
-end)
-    Window:Notify({
-      Title = "Toggle",
-      Content = tostring(v) ,
-      Duration = 3
-    })
-  end
-})
-
 MainTab:AddSection("Slider")
 MainTab:AddSlider({
   Name = "Jump Power",
@@ -130,7 +111,6 @@ MainTab:AddSlider({
   end
 })
 
-MainTab:AddSection("Slider")
 MainTab:AddSlider({
   Name = "Walk Speed",
   Min = 25,

@@ -99,6 +99,30 @@ end)
   end
 })
 
+MainTab:AddSection("Slider")
+MainTab:AddSlider({
+  Name = "Jump Power",
+  Min = 20,
+  Max = 500,
+  Increment = 5,
+  Default = 20,
+  Callback = function(v)
+  game.Players.LocalPlayer.Character.Humanoid.JumpPower = v
+  end
+})
+
+MainTab:AddSection("Slider")
+MainTab:AddSlider({
+  Name = "Jump Power",
+  Min = 50,
+  Max = 1000,
+  Increment = 5,
+  Default = 50,
+  Callback = function(v)
+  game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
+  end
+})
+
 MainTab:AddSection("Dropdown Multi")
 MainTab:AddDropdown({
   Name = "Multi Select",

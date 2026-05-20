@@ -26,7 +26,6 @@ local ConfigTab = Window:MakeTab({
   Icon = "Settings"
 })
 
-MainTab:AddSection("Best Feature")
 MainTab:AddToggle({
     Name = "Auto Wall Hop",
     Default = false,
@@ -93,7 +92,7 @@ player.CharacterAdded:Connect(function(newCharacter)
 end)
     Window:Notify({
       Title = "Toggle",
-      Content = Wall hop is loaded ,
+      Content = tostring(v) ,
       Duration = 3
     })
   end

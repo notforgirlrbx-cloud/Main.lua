@@ -26,6 +26,7 @@ local ConfigTab = Window:MakeTab({
   Icon = "Settings"
 })
 
+MainTab:AddSection("Toggle")
 MainTab:AddToggle({
     Name = "Auto Wall Hop",
     Default = false,
@@ -98,18 +99,6 @@ end)
   end
 })
 
-MainTab:AddSection("Slider")
-MainTab:AddSlider({
-  Name = "Jump Power",
-  Min = 20,
-  Max = 500,
-  Increment = 5,
-  Default = 20,
-  Callback = function(v)
-  game.Players.LocalPlayer.Character.Humanoid.JumpPower = v
-  end
-})
-
 MainTab:AddToggle({
   Name = "infinite jump",
   Default = false,
@@ -121,6 +110,25 @@ game:GetService("UserInputService").JumpRequest:connect(function()
 		game:GetService"Players".LocalPlayer.Character:FindFirstChildOfClass'Humanoid':ChangeState("Jumping")
 	end
 end)
+    Window:Notify({
+      Title = "Toggle",
+      Content = tostring(v) ,
+      Duration = 3
+    })
+  end
+})
+
+MainTab:AddSection("Slider")
+MainTab:AddSlider({
+  Name = "Jump Power",
+  Min = 20,
+  Max = 500,
+  Increment = 5,
+  Default = 20,
+  Callback = function(v)
+  game.Players.LocalPlayer.Character.Humanoid.JumpPower = v
+  end
+})
 
 MainTab:AddSection("Slider")
 MainTab:AddSlider({

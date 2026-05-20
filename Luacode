@@ -194,81 +194,69 @@ MainTab:AddToggle({
 })
 
 MainTab:AddToggle({
-  Name = "Admin Fly",
-  Default = false,
-  Flag = "admin_fly", -- Fixed flag to match the actual feature name
-  Callback = function(v)
-    Flying = v
-    
-    local Players = game:GetService("Players")
-    local RunService = game:GetService("RunService")
-    local LocalPlayer = Players.LocalPlayer
-    
-    -- Clean up any existing loop if the toggle is turned off or restarted
-    if FlyConnection then
-        FlyConnection:Disconnect()
-        FlyConnection = nil
-    end
-    
-    if Flying then
-        -- Wait for character to exist safely
-        local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-        local Humanoid = Character:WaitForChild("Humanoid")
-        local RootPart = Character:WaitForChild("HumanoidRootPart")
-        local Camera = workspace.CurrentCamera
+    Name = "Admin Fly",
+    Default = false,
+    Flag = "admin_fly",
+    Callback = function(v)
+        local Players = game:GetService("Players")
+        local RunService = game:GetService("RunService")
+        local LocalPlayer = Players.LocalPlayer
         
-        -- Anchoring the character slightly or disabling certain states helps prevent glitching
-        Humanoid.PlatformStand = true
+        _G.MobileFlying = v
+        local flySpeed = 2 -- Increase to fly faster, decrease to go slower
         
-        -- Create a fresh loop that runs every single frame
-        FlyConnection = RunService.RenderStepped:Connect(function()
-            if not Flying or not Character:IsDescendantOf(workspace) then
-                if FlyConnection then FlyConnection:Disconnect() end
-                Humanoid.PlatformStand = false
-                return
+        if _G.MobileFlying then
+            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local rootPart = character:WaitForChild("HumanoidRootPart")
+            local humanoid = character:WaitForChild("Humanoid")
+            
+            -- Cancels gravity on the Y-axis so you float completely still when letting go of the joystick
+            local bodyVelocity = Instance.new("BodyVelocity")
+            bodyVelocity.Name = "MobileFlyForce"
+            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            bodyVelocity.MaxForce = Vector3.new(0, math.huge, 0) 
+            bodyVelocity.Parent = rootPart
+            
+            -- Frame loop to handle mobile flying
+            _G.MobileFlyConnection = RunService.Heartbeat:Connect(function()
+                if not _G.MobileFlying or not character:Parent() or not rootPart:Parent() then return end
+                
+                local camera = workspace.CurrentCamera
+                
+                -- Check if you are actively pushing your mobile joystick
+                if humanoid.MoveDirection.Magnitude > 0 then
+                    local lookVector = camera.CFrame.LookVector
+                    local moveVector = humanoid.MoveDirection
+                    
+                    -- Push forward + look up = fly up. Push forward + look down = fly down.
+                    local flyDirection = Vector3.new(moveVector.X, lookVector.Y * (moveVector.Magnitude), moveVector.Z)
+                    
+                    -- Update your character position instantly
+                    rootPart.CFrame = rootPart.CFrame + (flyDirection.Unit * flySpeed)
+                    
+                    -- Keeps your character facing the direction you are traveling
+                    rootPart.CFrame = CFrame.new(rootPart.Position, rootPart.Position + humanoid.MoveDirection)
+                else
+                    -- Freeze physics velocity so you don't drift away
+                    rootPart.Velocity = Vector3.new(0, 0, 0)
+                end
+            end)
+        else
+            -- Clean up everything when toggled OFF
+            if _G.MobileFlyConnection then 
+                _G.MobileFlyConnection:Disconnect() 
+                _G.MobileFlyConnection = nil
             end
             
-            -- Direction vector based on keyboard input
-            local MoveDirection = Vector3.new(0, 0, 0)
-            local UserInputService = game:GetService("UserInputService")
-            
-            if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                MoveDirection = MoveDirection + Camera.CFrame.LookVector
+            if LocalPlayer.Character then
+                local rootPart = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if rootPart then
+                    local force = rootPart:FindFirstChild("MobileFlyForce")
+                    if force then force:Destroy() end
+                end
             end
-            if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                MoveDirection = MoveDirection - Camera.CFrame.LookVector
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                MoveDirection = MoveDirection - Camera.CFrame.RightVector
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                MoveDirection = MoveDirection + Camera.CFrame.RightVector
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                MoveDirection = MoveDirection + Vector3.new(0, 1, 0)
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                MoveDirection = MoveDirection - Vector3.new(0, 1, 0)
-            end
-            
-            -- If moving, update velocity. Otherwise, hold the character still in the air.
-            if MoveDirection.Magnitude > 0 then
-                RootPart.Velocity = MoveDirection.Unit * Speed
-            else
-                RootPart.Velocity = Vector3.new(0, 0, 0)
-            end
-        end)
-    else
-        -- Safely reset player physics when toggle is turned off
-        pcall(function()
-            local Character = LocalPlayer.Character
-            if Character then
-                Character:WaitForChild("Humanoid").PlatformStand = false
-                Character:WaitForChild("HumanoidRootPart").Velocity = Vector3.new(0, 0, 0)
-            end
-        end)
+        end
     end
-  end
 })
 
 MainTab:AddSection("Slider")

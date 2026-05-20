@@ -201,94 +201,61 @@ MainTab:AddToggle({
         local Players = game:GetService("Players")
         local RunService = game:GetService("RunService")
         local LocalPlayer = Players.LocalPlayer
-        
-        -- Configuration
-        local flySpeed = 50 
-        
-        -- Global tracking variable to handle toggling off safely
-        _G.AdminFlyEnabled = v
+        local Camera = workspace.CurrentCamera
 
-        if v then
+        _G.Flying = v
+        
+        if _G.FlyConnection then _G.FlyConnection:Disconnect() end
+        if _G.BodyVelocity then _G.BodyVelocity:Destroy() end
+        if _G.BodyGyro then _G.BodyGyro:Destroy() end
+        
+        if _G.Flying then
             local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
             local rootPart = character:WaitForChild("HumanoidRootPart")
             local humanoid = character:WaitForChild("Humanoid")
-            local camera = workspace.CurrentCamera
-
-            -- Create physics objects for smooth movement
-            local bodyVelocity = Instance.new("BodyVelocity")
-            bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-            bodyVelocity.Parent = rootPart
-
-            local bodyGyro = Instance.new("BodyGyro")
-            bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
-            bodyGyro.CFrame = rootPart.CFrame
-            bodyGyro.Parent = rootPart
-
-            -- Change state so Roblox physics don't fight the flying
+            
+            _G.BodyVelocity = Instance.new("BodyVelocity")
+            _G.BodyVelocity.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+            _G.BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            _G.BodyVelocity.Parent = rootPart
+            
+            _G.BodyGyro = Instance.new("BodyGyro")
+            _G.BodyGyro.MaxTorque = Vector3.new(1e6, 1e6, 1e6)
+            _G.BodyGyro.CFrame = rootPart.CFrame
+            _G.BodyGyro.Parent = rootPart
+            
+            -- Changes humanoid state to prevent the falling/tripping animation while flying
             humanoid.PlatformStand = true
-
-            -- Connection loop for movement
-            task.spawn(function()
-                while _G.AdminFlyEnabled and character and rootPart and humanoid.Parent do
-                    RunService.RenderStepped:Wait()
-                    
-                    -- Directional vectors based on camera orientation
-                    local moveDirection = Vector3.new(0, 0, 0)
-                    
-                    -- Check keyboard inputs via UserInputService
-                    local UIS = game:GetService("UserInputService")
-                    
-                    if UIS:IsKeyDown(Enum.KeyCode.W) then
-                        moveDirection = moveDirection + camera.CFrame.LookVector
-                    end
-                    if UIS:IsKeyDown(Enum.KeyCode.S) then
-                        moveDirection = moveDirection - camera.CFrame.LookVector
-                    end
-                    if UIS:IsKeyDown(Enum.KeyCode.A) then
-                        moveDirection = moveDirection - camera.CFrame.RightVector
-                    end
-                    if UIS:IsKeyDown(Enum.KeyCode.D) then
-                        moveDirection = moveDirection + camera.CFrame.RightVector
-                    end
-                    if UIS:IsKeyDown(Enum.KeyCode.Space) then
-                        moveDirection = moveDirection + Vector3.new(0, 1, 0)
-                    end
-                    if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then
-                        moveDirection = moveDirection - Vector3.new(0, 1, 0)
-                    end
-
-                    -- Apply velocity and rotation
-                    bodyGyro.CFrame = camera.CFrame
-                    if moveDirection.Magnitude > 0 then
-                        bodyVelocity.Velocity = moveDirection.Unit * flySpeed
-                    else
-                        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-                    end
+            
+            _G.FlyConnection = RunService.Heartbeat:Connect(function()
+                if not character or not character.Parent then return end
+                _G.BodyGyro.CFrame = Camera.CFrame
+                
+                local moveDir = humanoid.MoveDirection
+                if moveDir.Magnitude > 0 then
+                    -- Genuine ;fly behavior: Uses lookVector to fly exactly where your camera faces
+                    local flyDirection = Camera.CFrame.LookVector * moveDir.Z * -50 + Camera.CFrame.RightVector * moveDir.X * 50
+                    _G.BodyVelocity.Velocity = Vector3.new(flyDirection.X, flyDirection.Y, flyDirection.Z)
+                else
+                    _G.BodyVelocity.Velocity = Vector3.new(0, 0, 0)
                 end
-
-                -- Clean up when toggled off
-                if bodyVelocity then bodyVelocity:Destroy() end
-                if bodyGyro then bodyGyro:Destroy() end
-                if humanoid then humanoid.PlatformStand = false end
             end)
             
+            -- Clean up function
+            local function endFlight()
+                if _G.FlyConnection then _G.FlyConnection:Disconnect() end
+                if _G.BodyVelocity then _G.BodyVelocity:Destroy() end
+                if _G.BodyGyro then _G.BodyGyro:Destroy() end
+                if humanoid then humanoid.PlatformStand = false end
+            end
+
+            humanoid.Died:Connect(endFlight)
         else
-            -- Turning off logic (handled by setting _G.AdminFlyEnabled to false)
-            _G.AdminFlyEnabled = false
-            
-            -- Instant cleanup for the current character just in case
+            -- Restores normal walking physics when toggled off
             local character = LocalPlayer.Character
             if character then
-                local rootPart = character:FindFirstChild("HumanoidRootPart")
                 local humanoid = character:FindFirstChildOfClass("Humanoid")
-                if rootPart then
-                    if rootPart:FindFirstChild("BodyVelocity") then rootPart.BodyVelocity:Destroy() end
-                    if rootPart:FindFirstChild("BodyGyro") then rootPart.BodyGyro:Destroy() end
-                end
-                if humanoid then
-                    humanoid.PlatformStand = false
-                end
+                if humanoid then humanoid.PlatformStand = false end
             end
         end
     end

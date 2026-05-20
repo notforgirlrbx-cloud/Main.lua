@@ -99,53 +99,6 @@ end)
   end
 })
 
-MainTab:AddToggle({
-  Name = "Infinite Jump",
-  Default = false,
-  Flag = "Toggle1",
-  Callback = function(v)
-        local InfiniteJumpEnabled = v
-        game:GetService("UserInputService").JumpRequest:connect(function()
-            if InfiniteJumpEnabled then
-                game:GetService"Players".LocalPlayer.Character:FindFirstChildOfClass'Humanoid':ChangeState("Jumping")
-            end
-        end)
-	end,
- })
-
-MainTab:AddSection("Best Feature")
-MainTab:AddSlider({
-  Name = "WalkSpeed",
-  Min = 20,
-  Max = 1000,
-  Increment = 5,
-  Default = 20,
-  Callback = function(v)
-  game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
-   end
-})
-
-MainTab:AddSlider({
-  Name = "JumpPower",
-  Min = 50,
-  Max = 1000,
-  Increment = 5,
-  Default = 50,
-  Callback = function(v)
-  game.Players.LocalPlayer.Character.Humanoid.JumpPower = v
-   end
-})
-
-MainTab:AddSection("Dropdown")
-MainTab:AddDropdown({
-  Name = "Select Fruit",
-  Options = {"Light","Dough","Leopard"},
-  Default = "Light",
-  Callback = function(v)
-    print(v)
-  end
-})
-
 MainTab:AddSection("Dropdown Multi")
 MainTab:AddDropdown({
   Name = "Multi Select",

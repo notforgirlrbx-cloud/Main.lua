@@ -100,10 +100,10 @@ end)
 })
 
 MainTab:AddToggle({
-	Name = "Infinite Jump",
-	Default = false,
-	Flag = "Toggle1",
-	Callback = function(v)
+  Name = "Infinite Jump",
+  Default = false,
+  Flag = "Toggle1",
+  Callback = function(v)
         local InfiniteJumpEnabled = v
         game:GetService("UserInputService").JumpRequest:connect(function()
             if InfiniteJumpEnabled then

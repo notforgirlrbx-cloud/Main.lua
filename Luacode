@@ -194,107 +194,120 @@ MainTab:AddToggle({
 })
 
 MainTab:AddToggle({
-    Name = "Admin Fly",
+    Name = "Fly",
     Default = false,
-    Flag = "admin_fly",
-    Callback = function(v)
-        -- Services and Player Variables Setup
+    Flag = "fly_toggle",
+    Callback = function(state)
+        local Players = game:Service("Players")
+        local LocalPlayer = Players.LocalPlayer
         local RunService = game:GetService("RunService")
-        local UserInputService = game:GetService("UserInputService")
-        local Players = game:GetService("Players")
-
-        local player = Players.LocalPlayer
-        local camera = workspace.CurrentCamera
-        local character = player.Character or player.CharacterAdded:Wait()
-        local rootPart = character:WaitForChild("HumanoidRootPart", 5)
-        local humanoid = character:WaitForChild("Humanoid", 5)
         
-        -- Global speed configuration
-        getgenv().MobileFlySpeed = 45 -- Slightly lowered for easier mobile steering
-
-        if v then
-            -- === TURN FLY ON ===
-            if rootPart:FindFirstChild("FlyAttachment") then rootPart.FlyAttachment:Destroy() end
-            if getgenv().MobileFlyConnection then getgenv().MobileFlyConnection:Disconnect() end
-
-            -- Prevent character from falling over
-            humanoid.PlatformStand = true
-
-            local attachment = Instance.new("Attachment")
-            attachment.Name = "FlyAttachment"
-            attachment.Parent = rootPart
-
-            local linearVelocity = Instance.new("LinearVelocity")
-            linearVelocity.Name = "FlyVelocity"
-            linearVelocity.Attachment0 = attachment
-            linearVelocity.MaxForce = math.huge
-            linearVelocity.Velocity = Vector3.new(0, 0, 0)
-            linearVelocity.RelativeTo = Enum.ActuatorRelativeTo.World
-            linearVelocity.Parent = rootPart
-
-            local alignOrientation = Instance.new("AlignOrientation")
-            alignOrientation.Name = "FlyOrientation"
-            alignOrientation.Attachment0 = attachment
-            alignOrientation.MaxTorque = math.huge
-            alignOrientation.Responsiveness = 200
-            alignOrientation.Mode = Enum.OrientationMode.OneAttachment
-            alignOrientation.CFrame = rootPart.CFrame
-            alignOrientation.Parent = rootPart
-
-            -- Mobile-Optimized Flight Loop
-            getgenv().MobileFlyConnection = RunService.RenderStepped:Connect(function()
-                if not character.Parent or not rootPart.Parent or not linearVelocity.Parent then
-                    if getgenv().MobileFlyConnection then getgenv().MobileFlyConnection:Disconnect() end
-                    return
-                end
-
-                -- 1. Get horizontal movement direction directly from the mobile thumbstick
-                local moveDirection = humanoid.MoveDirection
-
-                -- 2. Modify direction based on vertical camera angle (tilt phone up/down to change altitude)
-                if moveDirection.Magnitude > 0 then
-                    -- This links the thumbstick vector to your mobile camera's pitch angle
-                    moveDirection = camera.CFrame:VectorToWorldSpace(camera.CFrame:VectorToObjectSpace(moveDirection))
-                end
-
-                -- 3. Mobile Jump Button Check (Fly Upwards)
-                -- Checking if the jump state is active handles pressing the on-screen jump button
-                if UserInputService:IsKeyDown(Enum.KeyCode.Space) or humanoid.Jump then
-                    moveDirection = moveDirection + Vector3.new(0, 1, 0)
-                end
-
-                -- Apply calculated mobile vector forces
-                if moveDirection.Magnitude > 0 then
-                    linearVelocity.Velocity = moveDirection.Unit * getgenv().MobileFlySpeed
-                else
-                    linearVelocity.Velocity = Vector3.new(0, 0, 0)
-                end
-
-                -- Keep character rotated toward where the camera faces
-                local camLook = camera.CFrame.LookVector
-                alignOrientation.CFrame = CFrame.lookAt(rootPart.Position, rootPart.Position + Vector3.new(camLook.X, 0, camLook.Z))
-            end)
+        -- Fly settings
+        _G.FlySpeed = 50 -- Adjust this value to change fly speed
+        
+        if state then
+            _G.Flying = true
             
+            task.spawn(function()
+                local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+                local Humanoid = Character:WaitForChild("Humanoid")
+                local RootPart = Character:WaitForChild("HumanoidRootPart")
+                local Camera = workspace.CurrentCamera
+                
+                -- Create a BodyVelocity to keep the player hovering/moving
+                local bv = Instance.new("BodyVelocity")
+                bv.Name = "FlyVelocity"
+                bv.MaxForce = Vector3.new(0, 0, 0) -- Initially 0, handled in the loop
+                bv.Velocity = Vector3.new(0, 0, 0)
+                bv.Parent = RootPart
+                
+                -- Create a BodyGyro to keep the player upright and facing forward
+                local bg = Instance.new("BodyGyro")
+                bg.Name = "FlyGyro"
+                bg.MaxForce = Vector3.new(0, 0, 0)
+                bg.C99999 = bg.C99999 -- dummy, ignore
+                bg.CFrame = RootPart.CFrame
+                bg.Parent = RootPart
+                
+                -- Change humanoid state to prevent falling animations
+                Humanoid.PlatformStand = true
+                
+                -- Movement loop
+                while _G.Flying and Character and RootPart and Humanoid and Humanoid.Parent do
+                    RunService.RenderStepped:Wait()
+                    
+                    bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+                    bg.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+                    bg.CFrame = Camera.CFrame
+                    
+                    local moveDirection = Vector3.new(0, 0, 0)
+                    
+                    -- Read core movement input from the player's Humanoid
+                    -- This ensures support for both Keyboard (WASD) and Mobile Joysticks!
+                    if Humanoid.MoveDirection.Magnitude > 0 then
+                        moveDirection = Humanoid.MoveDirection
+                    end
+                    
+                    -- Check for Up/Down movement (Spacebar / Mobile Jump button)
+                    if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then
+                        moveDirection = moveDirection + Vector3.new(0, 1, 0)
+                    elseif game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftControl) then
+                        moveDirection = moveDirection + Vector3.new(0, -1, 0)
+                    end
+                    
+                    -- Set the final velocity
+                    bv.Velocity = moveDirection * _G.FlySpeed
+                end
+                
+                -- Cleanup when toggle is turned off
+                if bv then bv:Destroy() end
+                if bg then bg:Destroy() end
+                if Humanoid then Humanoid.PlatformStand = false end
+            end)
         else
-            -- === TURN FLY OFF ===
-            if getgenv().MobileFlyConnection then
-                getgenv().MobileFlyConnection:Disconnect()
-                getgenv().MobileFlyConnection = nil
+            -- Turn off flying flag to break the loop
+            _G.Flying = false
+            
+            -- Manual cleanup fallback in case the loop didn't finish cleanly
+            local Character = LocalPlayer.Character
+            if Character then
+                local RootPart = Character:FindFirstChild("HumanoidRootPart")
+                local Humanoid = Character:FindFirstChild("Humanoid")
+                if RootPart then
+                    if RootPart:FindFirstChild("FlyVelocity") then RootPart.FlyVelocity:Destroy() end
+                    if RootPart:FindFirstChild("FlyGyro") then RootPart.FlyGyro:Destroy() end
+                end
+                if Humanoid then
+                    Humanoid.PlatformStand = false
+                end
             end
+        end
+    end
+})
 
-            if humanoid then
-                humanoid.PlatformStand = false
-            end
-
-            if rootPart then
-                local attachment = rootPart:FindFirstChild("FlyAttachment")
-                local velocity = rootPart:FindFirstChild("FlyVelocity")
-                local orientation = rootPart:FindFirstChild("FlyOrientation")
-
-                if attachment then attachment:Destroy() end
-                if velocity then velocity:Destroy() end
-                if orientation then orientation:Destroy() end
-            end
+MainTab:AddToggle({
+    Name = "Infinite Jump",
+    Default = false,
+    Flag = "infinite_jump",
+    Callback = function(state)
+        _G.InfiniteJump = state
+        
+        -- Keeps track of the connection so we don't duplicate it
+        if _G.InfiniteJumpConnection then 
+            _G.InfiniteJumpConnection:Disconnect() 
+        end
+        
+        if _G.InfiniteJump then
+            _G.InfiniteJumpConnection = game:GetService("UserInputService").JumpRequest:Connect(function()
+                local player = game:GetService("Players").LocalPlayer
+                local character = player.Character
+                if character then
+                    local humanoid = character:FindFirstChildOfClass("Humanoid")
+                    if humanoid then
+                        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                    end
+                end
+            end)
         end
     end
 })

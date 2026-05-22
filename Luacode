@@ -193,97 +193,100 @@ MainTab:AddToggle({
     end
 })
 
+-- Define these variables at the very top of your script (outside the UI code)
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+local flySpeed = 50
+local flyConnection = nil
+local bodyVelocity = nil
+local bodyGyro = nil
+
+-- Your MainTab Toggle
 MainTab:AddToggle({
     Name = "Fly",
     Default = false,
     Flag = "fly_toggle",
     Callback = function(state)
-        local Players = game:Service("Players")
-        local LocalPlayer = Players.LocalPlayer
-        local RunService = game:GetService("RunService")
-        
-        -- Fly settings
-        _G.FlySpeed = 50 -- Adjust this value to change fly speed
-        
         if state then
-            _G.Flying = true
-            
-            task.spawn(function()
-                local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-                local Humanoid = Character:WaitForChild("Humanoid")
-                local RootPart = Character:WaitForChild("HumanoidRootPart")
-                local Camera = workspace.CurrentCamera
-                
-                -- Create a BodyVelocity to keep the player hovering/moving
-                local bv = Instance.new("BodyVelocity")
-                bv.Name = "FlyVelocity"
-                bv.MaxForce = Vector3.new(0, 0, 0) -- Initially 0, handled in the loop
-                bv.Velocity = Vector3.new(0, 0, 0)
-                bv.Parent = RootPart
-                
-                -- Create a BodyGyro to keep the player upright and facing forward
-                local bg = Instance.new("BodyGyro")
-                bg.Name = "FlyGyro"
-                bg.MaxForce = Vector3.new(0, 0, 0)
-                bg.C99999 = bg.C99999 -- dummy, ignore
-                bg.CFrame = RootPart.CFrame
-                bg.Parent = RootPart
-                
-                -- Change humanoid state to prevent falling animations
-                Humanoid.PlatformStand = true
-                
-                -- Movement loop
-                while _G.Flying and Character and RootPart and Humanoid and Humanoid.Parent do
-                    RunService.RenderStepped:Wait()
-                    
-                    bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-                    bg.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-                    bg.CFrame = Camera.CFrame
-                    
-                    local moveDirection = Vector3.new(0, 0, 0)
-                    
-                    -- Read core movement input from the player's Humanoid
-                    -- This ensures support for both Keyboard (WASD) and Mobile Joysticks!
-                    if Humanoid.MoveDirection.Magnitude > 0 then
-                        moveDirection = Humanoid.MoveDirection
-                    end
-                    
-                    -- Check for Up/Down movement (Spacebar / Mobile Jump button)
-                    if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then
-                        moveDirection = moveDirection + Vector3.new(0, 1, 0)
-                    elseif game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftControl) then
-                        moveDirection = moveDirection + Vector3.new(0, -1, 0)
-                    end
-                    
-                    -- Set the final velocity
-                    bv.Velocity = moveDirection * _G.FlySpeed
+            -- START FLYING
+            local character = player.Character or player.CharacterAdded:Wait()
+            local rootPart = character:WaitForChild("HumanoidRootPart")
+            local humanoid = character:WaitForChild("Humanoid")
+
+            -- Prevents walking animations from glitching while floating
+            humanoid.PlatformStand = true
+
+            -- Create the physics forces for hovering/moving
+            bodyVelocity = Instance.new("BodyVelocity")
+            bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            bodyVelocity.Parent = rootPart
+
+            bodyGyro = Instance.new("BodyGyro")
+            bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+            bodyGyro.CFrame = rootPart.CFrame
+            bodyGyro.Parent = rootPart
+
+            -- Mobile-friendly movement loop (steers where the camera looks)
+            flyConnection = RunService.RenderStepped:Connect(function()
+                if not character or not character.Parent or not bodyVelocity or not bodyGyro then 
+                    return 
                 end
                 
-                -- Cleanup when toggle is turned off
-                if bv then bv:Destroy() end
-                if bg then bg:Destroy() end
-                if Humanoid then Humanoid.PlatformStand = false end
+                local moveDirection = humanoid.MoveDirection
+
+                if moveDirection.Magnitude > 0 then
+                    -- Mobile players steer by aiming their camera and pushing forward
+                    local lookVector = camera.CFrame.LookVector
+                    bodyVelocity.Velocity = lookVector * flySpeed * moveDirection.Magnitude
+                else
+                    -- Stand perfectly still in mid-air when not touching the joystick
+                    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                end
+
+                -- Keep the character facing the same way as the camera view
+                bodyGyro.CFrame = camera.CFrame
             end)
+
         else
-            -- Turn off flying flag to break the loop
-            _G.Flying = false
+            -- STOP FLYING (Clean up everything)
+            if flyConnection then 
+                flyConnection:Disconnect() 
+                flyConnection = nil
+            end
             
-            -- Manual cleanup fallback in case the loop didn't finish cleanly
-            local Character = LocalPlayer.Character
-            if Character then
-                local RootPart = Character:FindFirstChild("HumanoidRootPart")
-                local Humanoid = Character:FindFirstChild("Humanoid")
-                if RootPart then
-                    if RootPart:FindFirstChild("FlyVelocity") then RootPart.FlyVelocity:Destroy() end
-                    if RootPart:FindFirstChild("FlyGyro") then RootPart.FlyGyro:Destroy() end
+            local character = player.Character
+            if character then
+                local humanoid = character:FindFirstChild("Humanoid")
+                if humanoid then
+                    humanoid.PlatformStand = false
                 end
-                if Humanoid then
-                    Humanoid.PlatformStand = false
-                end
+            end
+
+            if bodyVelocity then 
+                bodyVelocity:Destroy() 
+                bodyVelocity = nil
+            end
+            if bodyGyro then 
+                bodyGyro:Destroy() 
+                bodyGyro = nil
             end
         end
     end
 })
+
+-- Safety Check: Clean up if the character respawns while flying is active
+player.CharacterRemoving:Connect(function()
+    if flyConnection then 
+        flyConnection:Disconnect() 
+        flyConnection = nil
+    end
+    bodyVelocity = nil
+    bodyGyro = nil
+end)
 
 MainTab:AddSection("Slider")
 MainTab:AddSlider({
